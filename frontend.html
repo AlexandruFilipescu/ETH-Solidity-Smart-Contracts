@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blockchain demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+  </head>
+  <body style="background-color: #deeafc">
+	<div style="padding-left:30%;padding-right:30%"> 
+		<nav>
+			<div class="nav nav-tabs" id="nav-tab" role="tablist">
+			  <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Upload blueprint</button>
+			  <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Update blueprint</button>
+			  <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false">Validate blueprint</button>
+			</div>
+		</nav>
+		<div class="tab-content" id="nav-tabContent">
+			<div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+				<h1> Welcome to the BIM Trust chain!</h1>
+				<h3>You can enter your blueprint here and certify it on the BIM trust chain.</h3>
+				<h5>Processing fee of: <span id="ethPrice" class="badge bg-primary"></span> ETH</h5>
+				<form id="myForm">
+					<div class="form-group">
+						<label for="uidInput">UID</label>
+						<input type="text" class="form-control" id="uidInput" placeholder="Enter Unique ID">
+						<small id="UIDHelp" class="form-text text-muted"> Make sure that you use an Unique identifier</small>
+					</div>
+					<hr style="border-top: 1px solid black;"/>
+					<div class="form-group">
+						<label for="authAddresses"> Insert Authorized Accounts</label>
+						<input type="text" class="form-control" id="authAddresses" placeholder="Enter Addresses">
+						<small id="authAddrHelp" class="form-text text-muted"> Enter all addresses who are allowed to update your blueprint</small>
+					</div>
+					<hr style="border-top: 1px solid black;"/>
+					<div class="form-group">
+						<label for="file">Upload Blueprint</label>
+						<br>
+						<input id="file" type="file" class="form-control-file mt-3" >
+						<input type="text" class="form-control mt-1" id="hashInput" placeholder="Hash value" readonly>
+					</div>
+					<hr style="border-top: 1px solid black;"/>
+					<button onclick="uploadBlueprint()" id="upload" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Processing fee of 0.1 ETH">Upload Blueprint</button>
+				</form>				
+			</div>
+			<div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+				<h1> Welcome to the BIM Trust chain!</h1>
+				<h3>You can enter your blueprint here and update it on the BIM trust chain.</h3>
+				<h5>Processing fee of: <span id="ethPrice2" class="badge bg-primary"></span> ETH</h5>
+				<form id="updateForm">
+					<div class="form-group">
+						<label for="uidInputUpdate">UID</label>
+						<input type="text" class="form-control" id="uidInputUpdate" placeholder="Enter Unique ID">
+						<small id="UIDUpdateHelp" class="form-text text-muted"> Add the UID of the Blueprint you want to update</small>
+					</div>
+					<hr style="border-top: 1px solid black;"/>
+					<div class="form-group">
+						<label for="hashInputUpdate">Upload Blueprint</label>
+						<br>
+						<input id="fileUpdate" type="file" class="form-control-file mt-3" >
+						<input type="text" class="form-control mt-1" id="hashInputUpdate" placeholder="Hash value" readonly>
+					</div>
+					<hr style="border-top: 1px solid black;"/>
+					<button onclick="updateBlueprint()" id="upload" class="btn btn-primary">Upload updated Blueprint</button>
+				</form>
+				<br>
+			<hr style="border-top: 3px solid black;"/>
+			<br>
+				<p>Enter a UID of a blueprint and you can see the history of it.</p>
+				<button onclick="getBlueprintHistory()" id="upload" class="btn btn-primary">Get blueprint history</button>
+				<table id="tableBody" class="table">
+				</table>
+			</div>
+			<div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+				<h1> Welcome to the BIM Trust chain!</h1>
+				<h3>You can enter your blueprint here and validate it on the BIM trust chain.</h3>
+				<form id="validateForm">
+					<div class="form-group">
+						<label for="uidInputValidate">UID</label>
+						<input type="text" class="form-control" id="uidInputValidate" placeholder="Enter Unique ID">
+						<small id="UIDValidateHelp" class="form-text text-muted"> Add the UID of the Blueprint you want to validate</small>
+					</div>
+					<hr style="border-top: 1px solid black;"/>
+					<div class="form-group">
+						<label for="hashInputValidate">File Hash</label>
+						<input id="fileValidate" type="file" class="form-control-file mt-3" >
+						<input type="text" class="form-control mt-1" id="hashInputValidate" placeholder="Hash value" readonly>
+
+					</div>
+					<hr style="border-top: 1px solid black;"/>
+				<button onclick="validateBlueprint()" id="upload" class="btn btn-primary">validate Blueprint</button>
+				</form>
+			</div>
+		  </div>
+	</div>
+
+	<!-- MODAL -->
+	<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+		  <div class="modal-content">
+			<div class="modal-header">
+			  <!-- <h5 class="modal-title" id="exampleModalLabel">Information</h5> -->
+			  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+			  <h5 id="modalText"></h5>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+			  <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+			</div>
+		  </div>
+		</div>
+	  </div>
+
+  </body>
+  <footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
+   
+    <!-- <script type="text/javascript" src="https://unpkg.com/web3@1.7.3/dist/web3.min.js"></script> Previously used version of Web3-->
+	<script src="https://unpkg.com/web3@1.7.3/dist/web3.min.js"></script>
+	
+    <script src="https://unpkg.com/@metamask/detect-provider/dist/detect-provider.min.js"> </script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.min.js" integrity="sha512-IKpu1GFk/bQ+2fOc4sXuA6lm7Rct4P7611iDBxY9LReOZ2PpwoDWWqj6GSYejUce1FLxo/d4lxAnKqGWJuBw7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script type ="text/javascript" src="ABI.js"></script>
+  </footer>
+</html>
+
+
+<script type="module">
+//console.log(ABI);
+
+  // The spread (...) syntax allows an iterable, such as an array or string, to be expanded in places where zero or more arguments (for function calls) or elements (for array literals) are expected
+	
+  //Query selector all obtains a nodeList
+	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+	console.log(tooltipList);
+	//SETUP
+
+	const CONTRACT_ADDRESS = "0x9736c9C0596F88F901Cf63B82Dc37B0fbF702471";
+	
+
+    let provider = await detectEthereumProvider(); // Metamask Function
+    let web3 = null;
+
+    if(provider) {
+			// A provider allows decentralized applications (dApps) to communicate with blockchain networks, such as Ethereum. They act as a bridge between the application and the network. You need to give your client a way to connect to the blockchain. Specifically, the web3js library requires Provider object that includes the connection protocol and the address/port of the node you're going to connect to.
+        web3 = new Web3(provider); 
+        console.log("We have a provider: " + provider);
+    } else {
+        web3 = new Web3("http://127.0.0.1:7545");
+    }
+
+    if(web3 == null){
+        throw new Error("Not connected...");
+    } else {
+        console.log(web3);
+    }
+	
+	let senderAccount = await getAccount();
+	let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS, {from: senderAccount});
+	
+	const ethereumFeeUpload 	   = '0.1';
+	const ethereumFeeUpdate 	   = '0.2';
+	var fee = document.getElementById("ethPrice");
+	var fee2 =  document.getElementById("ethPrice2");
+	fee.innerText = ethereumFeeUpload;
+	fee2.innerText = ethereumFeeUpdate;
+	const ETHUpload = web3.utils.toWei(ethereumFeeUpload);
+	const ETHUpdate  = Web3.utils.toWei(ethereumFeeUpdate);
+
+	async function getAccount(){
+        const accounts = await web3.eth.requestAccounts();
+				console.log("Accounts: " + accounts);
+        const account = accounts[0];
+        console.log("Selected account: " + account);
+		return account;
+    }
+
+	ethereum.on('accountsChanged', async function(accounts){
+		let newAccount = await getAccount();
+		contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS, {from: newAccount}); 
+	});
+
+	//SMART CONTRACT CALLS
+	window.uploadBlueprint = async function(){
+		const uid = getUID();
+		const hashValue = getHashValue();
+		const authorizedAccounts = getAuthorizedAccounts();
+		console.log("Account: " + senderAccount + " send hash: " + hashValue + " with UID: " + uid + " to SM...");
+		let result = await contract.methods.uploadNewBlueprintHash(uid, hashValue, authorizedAccounts).send({value: ETHUpload})
+		.on('receipt', function(receipt){	
+			console.log(typeof(receipt));
+			console.log("Receipt: " + receipt);	
+			
+			var isUnique = receipt['events']['NewBlueprint']['returnValues']['isUnique'];
+			// var isUnique = receipt.events.NewBlueprint.returnValues.isUnique;
+			// or receipt.events.NewBl
+			if(isUnique){
+				showModal('The blueprint has been successfully certified!');
+			} else {
+				showModal('The contract has already been certified...');
+			}
+			
+		});
+
+		
+	}
+
+	window.updateBlueprint = async function(){
+		const uid = getUpdateUID();
+		const hashValue = getUpdateHashValue();
+		console.log("Blueprint with UID: " + uid + " will be updated with hash: " + hashValue);
+		let result = await contract.methods.updateBlueprint(uid, hashValue).send({value: ETHUpdate})
+		.on('receipt', function(receipt){    // .on('receipt') is a promiEvent = A promise combined with an event 
+																				// emmiter.PromiEvents work like a normal promises with added on, once and off functions. 
+			console.log("Receipt" + receipt);
+
+			let isUpdated = receipt['events']['BluePrintUpdated']['returnValues']['isUpdated'];
+			let previousHashes = receipt['events']['BluePrintUpdated']['returnValues']['oldHashes'];
+			let blueprintUpdaters = receipt['events']['BluePrintUpdated']['returnValues']['blueprintUpdaters'];
+			console.log("Blueprint Updaters:");
+			console.log(blueprintUpdaters);
+
+			if(isUpdated){
+				showModal("The blueprint has been successfully updated from: " + previousHashes[previousHashes.length -1] + " \nto:\n " + hashValue);
+			} else {
+				showModal("No Blueprint with UID: " + uid + " found or the sender is not authorized to update! Update aborted.");
+			}
+		});
+	}
+
+	window.getBlueprintHistory = async function(){
+		const uid = getUpdateUID();
+		let alexResult = await contract.methods.getBlueprintHistory(uid).call().
+		then(receipt => {
+			let previousHashes = receipt['oldHashes'];
+			let x = receipt['hashValue'];
+			let blueprintUpdaters = receipt['blueprintUpdaters'];
+			let previousTimestamps = receipt['oldTimestamps'];
+			let domElem = '<thead><tr><th scope="col">Version</th><th scope="col">Hash</th><th scope="col">Address</th><th scope="col">Timestamp</th></tr></thead><tbody>';
+			console.log(previousHashes);
+			console.log(blueprintUpdaters);
+			console.log(previousTimestamps);
+			console.log(x);
+
+			for(let i = 0; i < previousHashes.length; i++){
+				domElem += '<tr>';
+				domElem += '<td>' + i + '</td>';
+				domElem += '<td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">' + previousHashes[i] + '</td>';
+				domElem += '<td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">' + blueprintUpdaters[i] + '</td>';
+				domElem += '<td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">' + previousTimestamps[i] + '</td>';
+				domElem += '</tr>';
+			}
+			domElem += '</tbody>';
+
+			document.getElementById("tableBody").innerHTML = domElem;
+
+		
+		});
+
+	}
+
+	window.validateBlueprint = async function(){
+		const validationHashValue = getValidationHashValue();
+		const validationUid = getValidationUID();
+		let result = await contract.methods.validateBlueprintHash(validationUid, validationHashValue).call()
+		.then(receipt => {
+			console.log("receipt:" + receipt);
+			console.log("Owner:" + receipt['owner']);
+			console.log("Unique Id:" + receipt['uniqueId']);
+			
+			let isValid = receipt['isValid'];
+			let owner = receipt['owner'];
+			let uid =   receipt['uniqueId'];
+
+			if(isValid){
+				showModal("The blueprint has successfully been validated! \n\n UID is: " + uid + "\n\n Owner is: " + owner + ".");
+			} else{
+				showModal("The blueprint certificate with the UID: " + validationUid + " differs from the uploaded blueprint!");
+			}
+		});
+		
+	
+	}
+
+
+	const inputFile = document.querySelector("#file");
+	const updateFile = document.querySelector("#fileUpdate");
+	const validateFile = document.querySelector("#fileValidate");
+	inputFile.addEventListener("change", handleFiles, false);  // Using the callback handle
+	updateFile.addEventListener("change", handleFiles, false);
+	validateFile.addEventListener("change", handleFiles, false);
+
+	function handleFiles(event){
+		const fileList = this.files;
+		
+// The FileReader.onload property contains an event handler executed when the load event is fired, when content read with readAsArrayBuffer, readAsBinaryString, readAsDataURL or readAsText is available.
+		var file = fileList[0];
+		var reader = new FileReader();
+			reader.onload = function(e){
+				// binary data
+				var data = e.target.result;
+				var hash = CryptoJS.SHA3(CryptoJS.enc.Latin1.parse(data), { outputLength: 256 }); // This will actually return an Keccak-256 not an SHA3
+				var keccakHash = hash.toString(CryptoJS.enc.hex); 
+				if(event.target.id == "file"){
+					document.querySelector("#hashInput").value = keccakHash;
+					console.log("Input file called this handler");
+				} else if (event.target.id == "fileUpdate"){
+					console.log("File update called this handler");
+					document.querySelector("#hashInputUpdate").value = keccakHash;
+				} else {
+					console.log("File validate called this handler");
+					document.querySelector("#hashInputValidate").value = keccakHash;
+				}	
+			};
+			reader.onerror = function(e){
+				// error 
+				console.log('Error: ' + e.type);
+			}
+			reader.readAsBinaryString(file);
+
+
+	}
+
+
+	function getUID(){
+		return document.getElementById('uidInput').value;
+	}
+
+	function getUpdateUID(){
+		return document.getElementById('uidInputUpdate').value;
+	}
+
+	function getValidationUID(){
+		return document.getElementById('uidInputValidate').value;
+	}
+
+	function getAuthorizedAccounts(){
+		var text = document.getElementById("authAddresses").value
+		text = text.split(',');										// Split makes an array out of the inserted words
+		return text;
+	}
+
+	function getHashValue(){
+		var text = document.querySelector("#hashInput").value;
+		return "0x"+text;
+	}
+
+	function getValidationHashValue(){
+		var text = document.querySelector("#hashInputValidate").value;
+		return "0x"+text;
+	}
+
+	function getUpdateHashValue(){
+		var text = document.querySelector("#hashInputUpdate").value;
+		return "0x"+text;
+	}
+	
+
+	//Shenanigans
+	var form = document.getElementById("myForm"); 
+	var formValidate = document.getElementById("validateForm"); 
+	var formUpdate = document.getElementById("updateForm");
+	function handleForm(event) {
+		event.preventDefault();
+	 }
+	form.addEventListener('submit', handleForm);
+	formValidate.addEventListener('submit', handleForm);
+	formUpdate.addEventListener('submit', handleForm);
+
+
+
+
+	const modalToogle = document.getElementById("modal");
+	
+	function showModal(textContent){
+		const myModal = new bootstrap.Modal("#myModal", {});
+		const modalToggle = document.getElementById('toggleMyModal'); 
+		document.getElementById("modalText").innerText = textContent;
+		myModal.show();
+	}
+
+
+
+
+</script>

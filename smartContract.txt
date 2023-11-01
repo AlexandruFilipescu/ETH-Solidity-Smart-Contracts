@@ -1,0 +1,129 @@
+pragma solidity >=0.7.0 <0.9.0;
+// SPDX-License-Identifier: MIT
+contract bluePrintsRepository {
+                                                
+    address payable public depositAccount;
+
+    constructor() {
+        depositAccount = payable(msg.sender);//depositAccount = payable(msg.sender);
+    }
+
+    BluePrint[] blueprints; 
+
+    struct BluePrint{
+        uint UID;  
+        uint256 timestamp;
+        address owner;
+        bytes32 hashValue;
+        address[] authorizedAddresses;
+        bytes32[] oldHashes;
+        uint256[] oldTimestamps;
+        address[] blueprintUpdaters;
+    }
+
+    event NewBlueprint(bool isUnique);
+    event ValidateBlueprint(bool isValid, uint uniqueId, address owner);
+    event BluePrintUpdated (bool isUpdated, uint256[] oldtimestamp, bytes32[] oldHashes, address[] blueprintUpdaters);
+    event BluePrintHistory (bytes32[] oldHashes, uint256[] oldTimestamps, address[] blueprintUpdaters, bytes32 hashValue, uint256 timestamp, address owner);
+
+    
+
+    function uploadNewBlueprintHash(uint UID, bytes32 hashValue, address[] memory authorizedAddresses ) public payable returns(bool isCertified){ 
+        bool isUIDUnique = true;
+        for(uint i = 0; i<blueprints.length; i++){
+            if(blueprints[i].UID == UID){
+                isUIDUnique = false;
+            }
+        }
+        if(isUIDUnique){
+            bytes32[] memory oldHashes;
+            uint256[] memory oldTimestamps;
+            address[] memory blueprintUpdaters;
+            BluePrint memory newBlueprint = BluePrint(UID, block.timestamp, msg.sender, hashValue, authorizedAddresses, oldHashes, oldTimestamps, blueprintUpdaters);
+            blueprints.push(newBlueprint);
+        }
+
+        depositAccount.transfer(msg.value);
+
+        emit NewBlueprint(isUIDUnique);
+        //depositAccount.transfer(10000000000000000000); //17 Zeros
+        return(isUIDUnique);
+    }
+
+    function validateBlueprintHash(uint UID, bytes32 hashValue) public returns(bool isValid, uint uniqueId, address owner){
+        bool isValid = false;
+        uint someId;
+        address owner;
+        for(uint i = 0; i<blueprints.length; i++){
+            if(blueprints[i].hashValue == hashValue && blueprints[i].UID == UID){
+                isValid = true;
+                someId = blueprints[i].UID;
+                owner = blueprints[i].owner;
+            }
+        }
+
+        
+
+        emit ValidateBlueprint(isValid, someId, owner);
+        return(isValid,someId, owner);
+    }
+
+
+    function updateBlueprint(uint UID, bytes32 hashValue) public payable returns(bool isUpdated, uint256[] memory oldtimestamp, bytes32[] memory oldHashes){
+        bool bluePrintUpdated = false;
+        //
+        uint256[] memory oldtimestamps;
+        bytes32[] memory oldHashses;
+        address[] memory oldBlueprintUpdaters;
+        //
+
+        for(uint i = 0; i < blueprints.length; i++){
+            if(blueprints[i].UID == UID){
+                for(uint j = 0; j < blueprints[i].authorizedAddresses.length; j++){
+                    if(blueprints[i].authorizedAddresses[j] == msg.sender || blueprints[i].owner == msg.sender){
+                        blueprints[i].oldHashes.push(blueprints[i].hashValue);
+                        blueprints[i].oldTimestamps.push(blueprints[i].timestamp);
+                        blueprints[i].blueprintUpdaters.push(msg.sender);
+                        blueprints[i].hashValue = hashValue;
+                        blueprints[i].timestamp = block.timestamp;
+                        bluePrintUpdated = true;
+                        //
+                        oldtimestamps = blueprints[i].oldTimestamps;
+                        oldHashes = blueprints[i].oldHashes;
+                        oldBlueprintUpdaters =  blueprints[i].blueprintUpdaters;
+                        //
+                    }
+                }
+            }
+        }
+        depositAccount.transfer(msg.value);
+        emit BluePrintUpdated(bluePrintUpdated, oldtimestamps, oldHashes, oldBlueprintUpdaters);
+        return(bluePrintUpdated, oldtimestamps, oldHashses);
+    }
+
+    function getBlueprintHistory(uint UID) public returns(bytes32[] memory oldHashes, uint256[] memory oldTimestamps, address[] memory blueprintUpdaters){
+        bytes32[] memory oldHashes;
+        uint256[] memory oldTimestamps;
+        address[] memory blueprintUpdaters; 
+
+        bytes32 hashValue;
+        uint256 timestamp;
+        address owner;
+
+        for(uint i = 0; i<blueprints.length; i++){
+            if(blueprints[i].UID == UID){
+                oldHashes = blueprints[i].oldHashes;
+                oldTimestamps = blueprints[i].oldTimestamps;
+                blueprintUpdaters = blueprints[i].blueprintUpdaters;
+                hashValue = blueprints[i].hashValue;
+                timestamp = blueprints[i].timestamp;
+                owner = blueprints[i].owner;
+            }
+        }
+
+        emit BluePrintHistory(oldHashes, oldTimestamps, blueprintUpdaters, hashValue, timestamp, owner);
+        return(oldHashes, oldTimestamps, blueprintUpdaters);
+    }
+
+    
+}

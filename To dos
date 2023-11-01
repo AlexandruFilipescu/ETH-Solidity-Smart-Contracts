@@ -1,0 +1,27 @@
+
+Must do's
+1.) Bring smart contract to the UniFr blockchain. Show that multiple users can update/validate on the same Blueprint. 
+2.) Elaborate how to add the gasfees into our business model etc. 
+3.) Adapt all our models (Business model, archi mate etc.)
+4.) prepare presentation (6mins presentation, 4min demonstration)
+Can do's:
+1.) add own sub currency to our smart contract for payment besides the actual gas fees (code already here in the slides)
+2.) fix the issue that on "getBlueprintHistory" only old versions are shown
+3.) ~~make the visualization of returned values prettier on the UI(window.alert() is bad practice) ~~
+
+
+
+What I (Alex) did:
+1) I modified the 2 send() functions to call(); //
+2) Added Modal effects     //
+3) Fixed Bug if accounts were changed  //
+4) Added an ETH fee that goes into our account  //
+5) Refactored: Removed 70 lines of code //
+6) Automatically show hashed value of a file by using event handlers //
+7) Made the deposit account, initialized by the constructor.//
+
+
+
+
+
+
